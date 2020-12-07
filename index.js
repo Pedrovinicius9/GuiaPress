@@ -1,11 +1,12 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const session = require('express-session');
 const connection = require("./database/database");
 
 const categoriesController = require("./categories/CategoriesController");
 const articlesController = require("./articles/ArticlesController");
-const usersController = require ("./users/UsersController");
+const usersController = require("./users/UsersController");
 
 const Article = require("./articles/Article");
 const Category = require("./categories/Category");
@@ -13,6 +14,11 @@ const User = require("./users/User");
 
 // View engine
 app.set('view engine', 'ejs');
+
+// Session
+app.use(session({
+    secret: "asdiuuxzchhwiuhjkgsaf", cookie: { maxAge: 300000000 }
+}));
 
 // Static
 app.use(express.static('public'));
@@ -22,7 +28,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // Database
-
 connection
     .authenticate()
     .then(() => {
@@ -35,6 +40,27 @@ connection
 app.use("/", categoriesController);
 app.use("/", articlesController);
 app.use("/", usersController);
+
+app.get("/session", (req, res) => {
+    req.session.treinamento = "Formacao nodeJS"
+    req.session.ano = 2020
+    req.session.email = "pedrooliveira0490@gmail.com"
+    req.session.user = {
+        username: "PedroVinicius",
+        email: "pedrooliveira0490@gmail.com",
+        id: 10
+    }
+    res.send("Sessao gerada");
+});
+
+app.get("/leitura", (req, res) => {
+    res.json({
+        treinamento: req.session.treinamento,
+        ano: req.session.ano,
+        email: req.session.email,
+        user: req.session.user
+    })
+});
 
 app.get("/", (req, res) => {
     Article.findAll({
